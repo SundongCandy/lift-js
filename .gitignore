@@ -53,10 +53,16 @@ coverage.xml
 *.log
 
 # Sphinx documentation
-docs/build/
+doc/build/
 
 # PyBuilder
 target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+#MacOS
+.DS_Store
+
+#JetBrains IDE
+.idea/
