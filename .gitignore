@@ -70,3 +70,4 @@ target/
 #ply
 /src/parser.out
 /src/lift-tab.py
+/src/lift_tab.py
