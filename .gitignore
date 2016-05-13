@@ -71,3 +71,6 @@ target/
 /src/parser.out
 /src/lift-tab.py
 /src/lift_tab.py
+
+#Default output
+a.out
