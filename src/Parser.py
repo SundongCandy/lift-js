@@ -671,4 +671,11 @@ lex.lex()
 
 
 def build(start_label):
-    yacc.yacc(debug=1, start=start_label, optimize=True, tabmodule="lift-tab")
+    yacc.yacc(debug=1, start=start_label, optimize=True, tabmodule="lift_tab")
+
+
+if __name__ == "__main__":
+    build("Program")
+    with open("../tests/test_js/statement.js") as file:
+        ast = yacc.parse(file.read())
+        printAST(ast)
