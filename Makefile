@@ -12,6 +12,9 @@ else
     SPHINX = env/bin/sphinx-build  
 endif
 
+run:
+	$(PYTHON) lift/main.py $(TARGET) && $(PYTHON) tube/main.py a.out
+
 install:
 	$(PIP) install -r requirements.txt
 
@@ -19,12 +22,9 @@ test:
 	$(PYTEST) tests
 
 lint:
-	$(LINT) tests/* src/*
+	$(LINT) tests/* src/* 
 
 doc:
 	$(SPHINX) -b html docs/source docs/build
-
-run:
-	$(PYTHON) src/main.py $(filter-out $@,$(MAKECMDGOALS))
 
 .PHONY: install, test, lint, doc, run

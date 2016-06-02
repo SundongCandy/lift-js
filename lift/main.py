@@ -1,3 +1,4 @@
+#!env/bin/python
 """Lift JS
 
 Usage:
@@ -9,8 +10,8 @@ Options:
 """
 import Parser
 import Optimizer
-import Generator
 import sys
+from Generator import Generator
 from docopt import docopt
 
 
@@ -23,8 +24,8 @@ if __name__ == '__main__':
             Parser.build("Program")
             ast = Parser.yacc.parse(f.read())
     except IOError:
-        print 'Error opening file %s. Please check the file or \
-               the directory.' % input_file
+        print 'Error opening file %s. Please check the file or '\
+              'the directory.' % input_file
         sys.exit(1)
 
     ast = Optimizer.optimize(ast)
@@ -33,7 +34,6 @@ if __name__ == '__main__':
         with open(output_file, 'w') as f:
             f.write(Generator.generate(ast))
     except IOError:
-        print 'Error writing to file %s. Please check the file or \
-               the directory.' % output_file
+        print 'Error writing to file %s. Please check the file or '\
+              'the directory.' % output_file
         sys.exit(1)
-    

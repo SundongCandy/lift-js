@@ -7,5 +7,7 @@ Introduction
 Design Principal
 ----------------
 
-1. Everything is object.
+1. Everything is an object.
 2. Function can be everywhere.
+
+

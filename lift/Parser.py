@@ -1,3 +1,4 @@
+#pylint: skip-file
 from __future__ import print_function
 import ply.lex as lex
 import ply.yacc as yacc
@@ -293,12 +294,247 @@ def p_error(t):
     raise Exception("Can't undersand token '" + str(t.value) + "'")
 
 
+def p_Program(p):
+    """Program : StatementList"""
+    p[0] = ["Program", p[1]]
+
+
+def p_StatementList(p):
+    """StatementList : Statement
+    | StatementList Statement"""
+    if len(p) == 3:
+        p[1].append(p[2])
+        p[0] = p[1]
+    else:
+        p[0] = "StatementList"
+        p[0] = list(p)
+        # print("StatementList")    
+
+ 
+def p_Statement(p):
+    """Statement : Block
+    |   VariableStatement
+    |   EmptyStatement
+    |   ExpressionNoInStatement
+    |   IfStatement
+    |   IterationStatement
+    |   ReturnStatement
+    |   PrintStatement"""
+    p[0] = "Statement"
+    p[0] = list(p)
+    # print("Statement")
+
+
 def p_Block(p):
     """Block : '{' StatementList '}'
     | '{'  '}'"""
     p[0] = "Block"
     p[0] = list(p)
     # print("Block")
+
+
+def p_EmptyStatement(p):
+    """EmptyStatement : ';'"""
+    p[0] = "EmptyStatement"
+    p[0] = list(p)
+    # print("EmptyStatement")
+
+
+def p_ExpressionNoInStatement(p):
+    """ExpressionNoInStatement : ExpressionNoIn ';'
+    |  ExpressionNoIn """
+    p[0] = "ExpressionNoInStatement"
+    p[0] = list(p)
+    # print("ExpressionNoInStatement")
+
+
+def p_VariableStatement(p):
+    """VariableStatement : VAR Identifier ';'
+    | VAR Identifier
+    | VAR Identifier EQUAL AssignmentExpressionNoIn
+    | VAR Identifier EQUAL AssignmentExpressionNoIn ';'"""
+    p[0] = "VariableStatement"
+    p[0] = list(p)
+    # print("VariableStatement")
+
+
+def p_IfStatement(p):
+    """IfStatement : IF '(' ExpressionNoIn ')' Statement ELSE Statement
+    | IF '(' ExpressionNoIn ')' Statement """
+    p[0] = "IfStatement"
+    p[0] = list(p)
+    # print("IfStatement")
+
+
+def p_IterationStatement(p):
+    """IterationStatement : DoStatement
+    |   WhileStatement
+    |   OriginForStatement
+    |   ForEachStatement"""
+    p[0] = "IterationStatement"
+    p[0] = list(p)
+    # print("IterationStatement")
+
+
+def p_DoStatement(p):
+    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';'
+    | DO Statement WHILE '(' ExpressionNoIn ')' """
+    p[0] = "DoStatement"
+    p[0] = list(p)
+    # print("DoStatement")
+
+
+def p_WhileStatement(p):
+    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement"""
+    p[0] = "WhileStatement"
+    p[0] = list(p)
+    # print("WhileStatement")
+
+
+def p_OriginForStatement(p):
+    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement"""
+    p[0] = "OriginForStatement"
+    p[0] = list(p)
+    # print("OriginForStatement")
+
+
+def p_ForEachStatement(p):
+    """ForEachStatement : FOR '(' VAR Identifier IN ExpressionNoIn ')' Statement"""
+    p[0] = 'ForEachStatement'
+    p[0] = list(p)
+
+
+def p_ReturnStatement(p):
+    """ReturnStatement : RETURN ExpressionNoIn ';'
+    | RETURN ExpressionNoIn
+    | RETURN ';'
+    | RETURN"""
+    p[0] = "ReturnStatement"
+    p[0] = list(p)
+    # print("ReturnStatement")
+
+
+def p_PrintStatement(p):
+    """PrintStatement : PRINT ExpressionNoIn ';'
+    | PRINT ExpressionNoIn """
+    p[0] = "PrintStatement"
+    p[0] = list(p)
+
+
+def p_FunctionExpression(p):
+    """FunctionExpression : FUNCTION Identifier '(' FormalParameterList ')' FunctionBody
+                    | FUNCTION Identifier '(' ')' FunctionBody
+                    | FUNCTION '(' FormalParameterList ')' FunctionBody
+                    | FUNCTION '(' ')' FunctionBody"""
+    p[0] = 'FunctionExpression'
+    p[0] = list(p)
+    # print("FunctionExpression")
+
+
+def p_FunctionBody(p):
+    """FunctionBody : '{'  '}'
+                    | '{' StatementList '}'"""
+    p[0] = 'FunctionBody'
+    p[0] = list(p)
+    # print("FunctionBody")
+
+
+def p_FormalParameterList(p):
+    """FormalParameterList : Identifier
+                    | FormalParameterList ',' Identifier"""
+    if len(p) == 4:
+        p[1].append(p[2])
+        p[1].append(p[3])
+        p[0] = p[1]
+    else:
+        p[0] = ['FormalParameterList', p[1]]
+        # print("FormalParameterList")
+
+
+def p_ExpressionNoIn(p):
+    """ExpressionNoIn : AssignmentExpressionNoIn
+    | ExpressionNoIn ',' AssignmentExpressionNoIn"""
+    p[0] = "ExpressionNoIn"
+    p[0] = list(p)
+
+
+def p_AssignmentExpressionNoIn(p):
+    """AssignmentExpressionNoIn : LeftHandSideExpression EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression MUL_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression DIV_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression MOD_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression PLUS_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression MINUS_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression SHIFT_LEFT_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression SHIFT_RIGHT_ARITHMATIC_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression SHIFT_RIGHT_LOGIC_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression AND_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression XOR_EQUAL AssignmentExpressionNoIn
+    | LeftHandSideExpression OR_EQUAL AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn OR_OR AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn AND_AND AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn OR AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn XOR AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn AND AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn EQUAL_EQUAL AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn NOT_EQUAL AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn EQUAL_EQUAL_EQUAL AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn NOT_EQUAL_EQUAL AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn LESS_THAN AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn GREAT_THAN AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn LESS_EQUAL_THAN AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn GREAT_EQUAL_THAN AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn SHIFT_LEFT AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn SHIFT_RIGHT_ARITHMATIC AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn SHIFT_RIGHT_LOGIC AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn PLUS AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn MINUS AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn MUL AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn DIV AssignmentExpressionNoIn
+    | AssignmentExpressionNoIn MOD AssignmentExpressionNoIn
+    | PLUS_PLUS AssignmentExpressionNoIn %prec UNARY
+    | MINUS_MINUS AssignmentExpressionNoIn %prec UNARY
+    | TYPEOF AssignmentExpressionNoIn %prec UNARY
+    | PLUS AssignmentExpressionNoIn %prec UNARY
+    | MINUS AssignmentExpressionNoIn %prec UNARY
+    | BIT_WISE_NOT AssignmentExpressionNoIn %prec UNARY
+    | NOT AssignmentExpressionNoIn
+    | CallExpression %prec RIGHT_HAND
+    | MemberExpression %prec RIGHT_HAND
+    | AssignmentExpressionNoIn PLUS_PLUS %prec RIGHT_HAND
+    | AssignmentExpressionNoIn MINUS_MINUS %prec RIGHT_HAND
+    | LeftHandSideExpression %prec LEFT_HAND"""
+    p[0] = "AssignmentExpressionNoIn"
+    p[0] = list(p)
+
+
+def p_LeftHandSideExpression(p):
+    """LeftHandSideExpression  ::= Identifier
+    |   CallExpression
+    |   MemberExpression """
+    p[0] = "LeftHandSideExpression"
+    p[0] = list(p)
+
+
+def p_MemberExpression(p):
+    """MemberExpression : PrimaryExpression
+    |   AllocationExpression
+    |   MemberExpression MemberExpressionPart """
+    p[0] = "MemberExpression"
+    p[0] = list(p)
+
+
+def p_MemberExpressionPart(p):
+    """MemberExpressionPart : '[' ExpressionNoIn ']'
+    | '.' Identifier """
+    p[0] = "MemberExpressionPart"
+    p[0] = list(p)
+
+    
+def p_AllocationExpression(p):
+    """AllocationExpression : NEW MemberExpression Arguments"""
+    p[0] = "AllocationExpression"
+    p[0] = list(p)
 
 
 def p_PrimaryExpression(p):
@@ -311,6 +547,32 @@ def p_PrimaryExpression(p):
     |   FunctionExpression"""
     p[0] = "PrimaryExpression"
     p[0] = list(p)
+
+
+def p_CallExpression(p):
+    """CallExpression : MemberExpression Arguments
+    | CallExpression Arguments
+    | CallExpression MemberExpressionPart """
+    p[0] = "CallExpression"
+    p[0] = list(p)
+
+
+def p_Arguments(p):
+    """Arguments : '(' ArgumentList ')'
+    | '('  ')'"""
+    p[0] = "Arguments"
+    p[0] = list(p)
+
+
+def p_ArgumentList(p):
+    """ArgumentList : AssignmentExpressionNoIn
+    | ArgumentList ',' AssignmentExpressionNoIn """
+    if len(p) == 4:
+        p[1].append(p[2])
+        p[1].append(p[3])
+        p[0] = p[1]
+    else:
+        p[0] = ["ArgumentList", p[1]]
 
 
 def p_Literal(p):
@@ -394,268 +656,6 @@ def p_PropertyName(p):
     p[0] = list(p)
 
 
-def p_MemberExpression(p):
-    """MemberExpression : PrimaryExpression
-    |   AllocationExpression
-    |   MemberExpression MemberExpressionPart """
-    p[0] = "MemberExpression"
-    p[0] = list(p)
-
-
-def p_AllocationExpression(p):
-    """AllocationExpression : NEW MemberExpression Arguments"""
-    p[0] = "AllocationExpression"
-    p[0] = list(p)
-
-
-def p_MemberExpressionPart(p):
-    """MemberExpressionPart : '[' ExpressionNoIn ']'
-    | '.' Identifier """
-    p[0] = "MemberExpressionPart"
-    p[0] = list(p)
-
-
-def p_CallExpression(p):
-    """CallExpression : MemberExpression Arguments
-    | CallExpression Arguments
-    | CallExpression MemberExpressionPart """
-    p[0] = "CallExpression"
-    p[0] = list(p)
-
-
-def p_Arguments(p):
-    """Arguments : '(' ArgumentList ')'
-    | '('  ')'"""
-    p[0] = "Arguments"
-    p[0] = list(p)
-
-
-def p_ArgumentList(p):
-    """ArgumentList : AssignmentExpressionNoIn
-    | ArgumentList ',' AssignmentExpressionNoIn """
-    if len(p) == 4:
-        p[1].append(p[2])
-        p[1].append(p[3])
-        p[0] = p[1]
-    else:
-        p[0] = ["ArgumentList", p[1]]
-
-
-def p_LeftHandSideExpression(p):
-    """LeftHandSideExpression  ::= Identifier
-    |   CallExpression
-    |   MemberExpression """
-    p[0] = "LeftHandSideExpression"
-    p[0] = list(p)
-
-
-def p_AssignmentExpressionNoIn(p):
-    """AssignmentExpressionNoIn : LeftHandSideExpression EQUAL AssignmentExpressionNoIn
-    | LeftHandSideExpression MUL_EQUAL AssignmentExpressionNoIn
-    | LeftHandSideExpression DIV_EQUAL AssignmentExpressionNoIn
-    | LeftHandSideExpression MOD_EQUAL AssignmentExpressionNoIn
-    | LeftHandSideExpression PLUS_EQUAL AssignmentExpressionNoIn
-    | LeftHandSideExpression MINUS_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn SHIFT_LEFT_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn SHIFT_RIGHT_ARITHMATIC_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn SHIFT_RIGHT_LOGIC_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn AND_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn XOR_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn OR_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn OR_OR AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn AND_AND AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn OR AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn XOR AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn AND AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn EQUAL_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn NOT_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn EQUAL_EQUAL_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn NOT_EQUAL_EQUAL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn LESS_THAN AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn GREAT_THAN AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn LESS_EQUAL_THAN AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn GREAT_EQUAL_THAN AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn SHIFT_LEFT AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn SHIFT_RIGHT_ARITHMATIC AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn SHIFT_RIGHT_LOGIC AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn PLUS AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn MINUS AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn MUL AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn DIV AssignmentExpressionNoIn
-    | AssignmentExpressionNoIn MOD AssignmentExpressionNoIn
-    | PLUS_PLUS AssignmentExpressionNoIn %prec UNARY
-    | MINUS_MINUS AssignmentExpressionNoIn %prec UNARY
-    | TYPEOF AssignmentExpressionNoIn %prec UNARY
-    | VOID AssignmentExpressionNoIn %prec UNARY
-    | PLUS AssignmentExpressionNoIn %prec UNARY
-    | MINUS AssignmentExpressionNoIn %prec UNARY
-    | BIT_WISE_NOT AssignmentExpressionNoIn %prec UNARY
-    | NOT AssignmentExpressionNoIn
-    | CallExpression %prec RIGHT_HAND
-    | MemberExpression %prec RIGHT_HAND
-    | AssignmentExpressionNoIn PLUS_PLUS %prec RIGHT_HAND
-    | AssignmentExpressionNoIn MINUS_MINUS %prec RIGHT_HAND
-    | LeftHandSideExpression %prec LEFT_HAND"""
-    p[0] = "AssignmentExpressionNoIn"
-    p[0] = list(p)
-
-
-def p_ExpressionNoIn(p):
-    """ExpressionNoIn : AssignmentExpressionNoIn
-    | ExpressionNoIn ',' AssignmentExpressionNoIn"""
-    p[0] = "ExpressionNoIn"
-    p[0] = list(p)
-
-
-def p_Statement(p):
-    """Statement : Block
-    |   VariableStatement
-    |   EmptyStatement
-    |   ExpressionNoInStatement
-    |   IfStatement
-    |   IterationStatement
-    |   ReturnStatement
-    |   PrintStatement"""
-    p[0] = "Statement"
-    p[0] = list(p)
-    # print("Statement")
-
-
-def p_StatementList(p):
-    """StatementList : Statement
-    | StatementList Statement"""
-    if len(p) == 3:
-        p[1].append(p[2])
-        p[0] = p[1]
-    else:
-        p[0] = "StatementList"
-        p[0] = list(p)
-        # print("StatementList")
-
-
-def p_VariableStatement(p):
-    """VariableStatement : VAR Identifier ';'
-    | VAR Identifier
-    | VAR Identifier EQUAL AssignmentExpressionNoIn
-    | VAR Identifier EQUAL AssignmentExpressionNoIn ';'"""
-    p[0] = "VariableStatement"
-    p[0] = list(p)
-    # print("VariableStatement")
-
-
-def p_EmptyStatement(p):
-    """EmptyStatement : ';'"""
-    p[0] = "EmptyStatement"
-    p[0] = list(p)
-    # print("EmptyStatement")
-
-
-def p_ExpressionNoInStatement(p):
-    """ExpressionNoInStatement : ExpressionNoIn ';'
-    |  ExpressionNoIn """
-    p[0] = "ExpressionNoInStatement"
-    p[0] = list(p)
-    # print("ExpressionNoInStatement")
-
-
-def p_IfStatement(p):
-    """IfStatement : IF '(' ExpressionNoIn ')' Statement ELSE Statement
-    | IF '(' ExpressionNoIn ')' Statement """
-    p[0] = "IfStatement"
-    p[0] = list(p)
-    # print("IfStatement")
-
-
-def p_IterationStatement(p):
-    """IterationStatement : DoStatement
-    |   WhileStatement
-    |   OriginForStatement
-    |   ForEachStatement"""
-    p[0] = "IterationStatement"
-    p[0] = list(p)
-    # print("IterationStatement")
-
-
-def p_DoStatement(p):
-    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';'
-    | DO Statement WHILE '(' ExpressionNoIn ')' """
-    p[0] = "DoStatement"
-    p[0] = list(p)
-    # print("DoStatement")
-
-
-def p_WhileStatement(p):
-    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement"""
-    p[0] = "WhileStatement"
-    p[0] = list(p)
-    # print("WhileStatement")
-
-
-def p_OriginForStatement(p):
-    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement"""
-    p[0] = "OriginForStatement"
-    p[0] = list(p)
-    # print("OriginForStatement")
-
-
-def p_ForEachStatement(p):
-    """ForEachStatement : FOR '(' VAR Identifier IN ExpressionNoIn ')' Statement"""
-    p[0] = 'ForEachStatement'
-    p[0] = list(p)
-
-
-def p_ReturnStatement(p):
-    """ReturnStatement : RETURN ExpressionNoIn ';'
-    | RETURN ExpressionNoIn
-    | RETURN ';'
-    | RETURN"""
-    p[0] = "ReturnStatement"
-    p[0] = list(p)
-    # print("ReturnStatement")
-
-
-def p_PrintStatement(p):
-    """PrintStatement : PRINT ExpressionNoIn ';'
-    | PRINT ExpressionNoIn """
-    p[0] = "PrintStatement"
-    p[0] = list(p)
-
-
-def p_FunctionExpression(p):
-    """FunctionExpression : FUNCTION Identifier '(' FormalParameterList ')' FunctionBody
-                    | FUNCTION Identifier '(' ')' FunctionBody
-                    | FUNCTION '(' FormalParameterList ')' FunctionBody
-                    | FUNCTION '(' ')' FunctionBody"""
-    p[0] = 'FunctionExpression'
-    p[0] = list(p)
-    # print("FunctionExpression")
-
-
-def p_FormalParameterList(p):
-    """FormalParameterList : Identifier
-                    | FormalParameterList ',' Identifier"""
-    if len(p) == 4:
-        p[1].append(p[2])
-        p[1].append(p[3])
-        p[0] = p[1]
-    else:
-        p[0] = ['FormalParameterList', p[1]]
-        # print("FormalParameterList")
-
-
-def p_FunctionBody(p):
-    """FunctionBody : '{'  '}'
-                    | '{' StatementList '}'"""
-    p[0] = 'FunctionBody'
-    p[0] = list(p)
-    # print("FunctionBody")
-
-
-def p_Program(p):
-    """Program : StatementList"""
-    p[0] = ["Program", p[1]]
-
-
 def printAST(p, n=0):
     if p is not None:
         print('  ' * n, end='')
@@ -676,6 +676,6 @@ def build(start_label):
 
 if __name__ == "__main__":
     build("Program")
-    with open("../tests/test_js/statement.js") as file:
+    with open("../tests/test_js/temp.js") as file:
         ast = yacc.parse(file.read())
         printAST(ast)

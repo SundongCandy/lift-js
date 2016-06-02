@@ -13,6 +13,8 @@ Contents:
 
    intro.rst
    grammar.rst
+   implementation.rst
+   document.rst
 
 
 Indices and tables
