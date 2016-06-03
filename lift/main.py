@@ -2,7 +2,7 @@
 """Lift JS
 
 Usage:
-    main.py <file>  [-o <file>] 
+    main.py <file>  [-o <file>] [-O]
 
 Options:
     -o <file>, --output <file>      Specifies output file [default: a.out].
@@ -28,7 +28,8 @@ if __name__ == '__main__':
               'the directory.' % input_file
         sys.exit(1)
 
-    ast = Optimizer.optimize(ast)
+    if args['-O']:
+        ast = Optimizer.optimize(ast)
 
     try:
         with open(output_file, 'w') as f:
