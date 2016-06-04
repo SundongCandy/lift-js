@@ -535,8 +535,6 @@ def p_StatementList(p):
 
 def p_VariableStatement(p):
     """VariableStatement : VAR Identifier ';'
-    | VAR Identifier
-    | VAR Identifier EQUAL AssignmentExpressionNoIn
     | VAR Identifier EQUAL AssignmentExpressionNoIn ';'"""
     p[0] = "VariableStatement"
     p[0] = list(p)
@@ -551,8 +549,7 @@ def p_EmptyStatement(p):
 
 
 def p_ExpressionNoInStatement(p):
-    """ExpressionNoInStatement : ExpressionNoIn ';'
-    |  ExpressionNoIn """
+    """ExpressionNoInStatement : ExpressionNoIn ';' """
     p[0] = "ExpressionNoInStatement"
     p[0] = list(p)
     # print("ExpressionNoInStatement")
@@ -577,8 +574,7 @@ def p_IterationStatement(p):
 
 
 def p_DoStatement(p):
-    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';'
-    | DO Statement WHILE '(' ExpressionNoIn ')' """
+    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';' """
     p[0] = "DoStatement"
     p[0] = list(p)
     # print("DoStatement")
@@ -606,17 +602,14 @@ def p_ForEachStatement(p):
 
 def p_ReturnStatement(p):
     """ReturnStatement : RETURN ExpressionNoIn ';'
-    | RETURN ExpressionNoIn
-    | RETURN ';'
-    | RETURN"""
+    | RETURN ';' """
     p[0] = "ReturnStatement"
     p[0] = list(p)
     # print("ReturnStatement")
 
 
 def p_PrintStatement(p):
-    """PrintStatement : PRINT ExpressionNoIn ';'
-    | PRINT ExpressionNoIn """
+    """PrintStatement : PRINT ExpressionNoIn ';' """
     p[0] = "PrintStatement"
     p[0] = list(p)
 
@@ -672,3 +665,10 @@ lex.lex()
 
 def build(start_label):
     yacc.yacc(debug=1, start=start_label, optimize=True, tabmodule="lift_tab")
+
+
+if __name__ == "__main__":
+    build("Program")
+    with open("error/basic.js") as file:
+        ast = yacc.parse(file.read())
+        printAST(ast)

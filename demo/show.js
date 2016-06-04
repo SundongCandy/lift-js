@@ -4,4 +4,4 @@ panel.show({
   key1: 'val1',
   key2: 'val2'
 });
-panel.show(panel.show)
+panel.show(panel.show);

@@ -1,3 +1,3 @@
-function Person() {}
+function Person() {};
 
 panel.show(Person);

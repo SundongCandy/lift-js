@@ -6,7 +6,7 @@ function Number() {
   this.get = function () {
     return num;
   };
-}
+};
 
 n = new Number();
 panel.show(n.get());
