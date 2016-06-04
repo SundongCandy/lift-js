@@ -559,14 +559,17 @@ def p_StatementList(p):
 
 def p_VariableStatement(p):
     """VariableStatement : VAR Identifier ';'
-    |   VAR error ';'
-    |   VAR error
-    |   VAR Identifier EQUAL AssignmentExpressionNoIn ';'
-    |   VAR Identifier EQUAL error ';'
-    |   VAR Identifier EQUAL error"""
+    |   VAR Identifier EQUAL AssignmentExpressionNoIn ';' """
     p[0] = "VariableStatement"
     p[0] = list(p)
     # print("VariableStatement")
+
+
+def p_VariableStatementError(p):
+    """VariableStatement : VAR error ';'
+    |   VAR error
+    |   VAR Identifier EQUAL error ';'
+    |   VAR Identifier EQUAL error"""
 
 
 def p_EmptyStatement(p):
@@ -577,22 +580,27 @@ def p_EmptyStatement(p):
 
 
 def p_ExpressionNoInStatement(p):
-    """ExpressionNoInStatement : ExpressionNoIn ';'
-    |   error ';'
-    |   error """
+    """ExpressionNoInStatement : ExpressionNoIn ';' """
     p[0] = "ExpressionNoInStatement"
     p[0] = list(p)
     # print("ExpressionNoInStatement")
 
 
+def p_ExpressionNoInStatementError(p):
+    """ExpressionNoInStatement : error ';'
+    |   error """
+
+
 def p_IfStatement(p):
     """IfStatement : IF '(' ExpressionNoIn ')' Statement ELSE Statement
-    |   IF '(' error ')' Statement ELSE Statement
-    |   IF '(' ExpressionNoIn ')' Statement
-    |   IF '(' error ')' Statement """
+    |   IF '(' ExpressionNoIn ')' Statement """
     p[0] = "IfStatement"
     p[0] = list(p)
-    # print("IfStatement")
+
+
+def p_IfStatementError(p):
+    """IfStatement : IF '(' error ')' Statement ELSE Statement
+    |   IF '(' error ')' Statement """
 
 
 def p_IterationStatement(p):
@@ -606,28 +614,37 @@ def p_IterationStatement(p):
 
 
 def p_DoStatement(p):
-    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';'
-    |   DO Statement WHILE '(' error ')' ';' """
+    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';' """
     p[0] = "DoStatement"
     p[0] = list(p)
     # print("DoStatement")
 
 
+def p_DoStatementError(p):
+    """DoStatement : DO Statement WHILE '(' error ')' ';' """
+
+
 def p_WhileStatement(p):
-    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement
-    |   WHILE '(' error ')' Statement """
+    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement """
     p[0] = "WhileStatement"
     p[0] = list(p)
     # print("WhileStatement")
 
 
+def p_WhileStatementError(p):
+    """WhileStatement : WHILE '(' error ')' Statement """
+
+
 def p_OriginForStatement(p):
-    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement
-    |   FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' error ')' Statement
-    |   FOR '(' ExpressionNoIn  ';' error ')' Statement
-    |   FOR '(' error ')' Statement """
+    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement """
     p[0] = "OriginForStatement"
     p[0] = list(p)
+
+
+def p_OriginForStatementError(p):
+    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' error ')' Statement
+    |   FOR '(' ExpressionNoIn  ';' error ')' Statement
+    |   FOR '(' error ')' Statement """
 
 
 def p_ForEachStatement(p):
@@ -638,11 +655,14 @@ def p_ForEachStatement(p):
 
 def p_ReturnStatement(p):
     """ReturnStatement : RETURN ExpressionNoIn ';'
-    | RETURN ';'
-    | RETURN error ';' """
+    | RETURN ';' """
     p[0] = "ReturnStatement"
     p[0] = list(p)
     # print("ReturnStatement")
+
+
+def p_ReturnStatementError(p):
+    """ReturnStatement : RETURN error ';' """
 
 
 def p_PrintStatement(p):
