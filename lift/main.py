@@ -14,19 +14,23 @@ import sys
 from Generator import Generator
 from docopt import docopt
 
-
 if __name__ == '__main__':
     args = docopt(__doc__)
     input_file = args['<file>']
     output_file = args['--output']
+    ast = None
     try:
         with open(input_file, 'r') as f:
             Parser.build("Program")
-            ast = Parser.yacc.parse(f.read())
+            source = f.read()
+            ast = Parser.yacc.parse(source)
     except IOError:
-        print 'Error opening file %s. Please check the file or '\
+        print 'Error opening file %s. Please check the file or ' \
               'the directory.' % input_file
         sys.exit(1)
+
+    if ast is None:
+        sys.exit(-1)
 
     if args['-O']:
         ast = Optimizer.optimize(ast)
@@ -35,6 +39,6 @@ if __name__ == '__main__':
         with open(output_file, 'w') as f:
             f.write(Generator.generate(ast))
     except IOError:
-        print 'Error writing to file %s. Please check the file or '\
+        print 'Error writing to file %s. Please check the file or ' \
               'the directory.' % output_file
         sys.exit(1)

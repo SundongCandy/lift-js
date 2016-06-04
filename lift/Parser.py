@@ -1,6 +1,7 @@
 from __future__ import print_function
 import ply.lex as lex
 import ply.yacc as yacc
+import sys
 
 # import pdb
 unsupported = (
@@ -251,7 +252,10 @@ def t_STRING_LITERAL(t):
 
 def t_COMMENT(t):
     r'(//.*)|(/\*(.|\n)*\*/)'
-    t.lexer.lineno += t.value.count("\n")
+    length = t.value.count("\n")
+    t.lexer.lineno += length
+    for i in range(0, length):
+        t.lexer.lines.append(t.lexer.lexpos)
     pass
     # No return value. Token discarded
 
@@ -277,7 +281,10 @@ def t_HEX_INTEGER_LITERAL(t):
 # Define a rule so we can track line numbers
 def t_newline(t):
     r'\n+'
-    t.lexer.lineno += len(t.value)
+    length = len(t.value)
+    t.lexer.lineno += length
+    for i in range(0, length):
+        t.lexer.lines.append(t.lexer.lexpos)
 
 
 # Error handling rule
@@ -290,7 +297,20 @@ literals = "(){}[];.,?:"
 
 
 def p_error(t):
-    raise Exception("Can't undersand token '" + str(t.value) + "'")
+    data_len = len(t.lexer.lexdata)
+    i = t.lexer.lines[t.lexer.lineno - 1]
+    print("line %d, column %d:unexpected token %s" % (t.lexer.lineno, t.lexer.lexpos - i, t.value))
+    data = t.lexer.lexdata
+    while i < data_len and data[i] != "\n":
+        sys.stdout.write(data[i])
+        i += 1
+    i = t.lexer.lines[t.lexer.lineno - 1]
+    sys.stdout.write("\n")
+    while i < data_len and data[i] != "\n":
+        i += 1
+        sys.stdout.write("^" if i == t.lexer.lexpos else " ")
+    sys.stdout.flush()
+    print()
 
 
 def p_Block(p):
@@ -594,6 +614,11 @@ def p_OriginForStatement(p):
     # print("OriginForStatement")
 
 
+# def p_OriginForStatementError(p):
+#     """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn error ')' Statement"""
+#     print("For statement error")
+
+
 def p_ForEachStatement(p):
     """ForEachStatement : FOR '(' VAR Identifier IN ExpressionNoIn ')' Statement"""
     p[0] = 'ForEachStatement'
@@ -660,15 +685,14 @@ def printAST(p, n=0):
             print(p)
 
 
-lex.lex()
-
-
 def build(start_label):
     yacc.yacc(debug=1, start=start_label, optimize=True, tabmodule="lift_tab")
+    lexer = lex.lex()
+    lexer.lines = [0]
 
 
 if __name__ == "__main__":
     build("Program")
     with open("error/basic.js") as file:
         ast = yacc.parse(file.read())
-        printAST(ast)
+        # printAST(ast)
