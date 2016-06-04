@@ -1,4 +1,4 @@
-panel.show('Guess how old I am?');
+panel.show('Guess how old I am?);
 var i =;
 for (i=){
 x++;

@@ -290,7 +290,11 @@ def t_newline(t):
 
 # Error handling rule
 def t_error(t):
-    raise Exception("Illegal character '%s' at line %d" % (t.value[0], t.lexer.lineno))
+    import Parser
+    Parser.correct = False
+    i = t.lexer.lines[t.lexer.lineno - 1]
+    print("line %d, column %d: Illegal character '%s'" % (t.lexer.lineno, t.lexer.lexpos - i, t.value[0]))
+    t.lexer.skip(1)
 
 
 t_ignore = ' \t\f\v'
@@ -302,7 +306,7 @@ def p_error(t):
     Parser.correct = False
     data_len = len(t.lexer.lexdata)
     i = t.lexer.lines[t.lexer.lineno - 1]
-    print("line %d, column %d:unexpected token %s" % (t.lexer.lineno, t.lexer.lexpos - i, t.value))
+    print("line %d, column %d: unexpected token %s" % (t.lexer.lineno, t.lexer.lexpos - i, t.value))
     data = t.lexer.lexdata
     while i < data_len and data[i] != "\n":
         sys.stdout.write(data[i])
