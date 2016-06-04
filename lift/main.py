@@ -23,7 +23,7 @@ if __name__ == '__main__':
         with open(input_file, 'r') as f:
             Parser.build("Program")
             source = f.read()
-            ast = Parser.yacc.parse(source)
+            ast = Parser.parse(source)
     except IOError:
         print 'Error opening file %s. Please check the file or ' \
               'the directory.' % input_file

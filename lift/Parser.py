@@ -3,6 +3,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 import sys
 
+correct = True
 # import pdb
 unsupported = (
     'abstract',
@@ -297,6 +298,8 @@ literals = "(){}[];.,?:"
 
 
 def p_error(t):
+    import Parser
+    Parser.correct = False
     data_len = len(t.lexer.lexdata)
     i = t.lexer.lines[t.lexer.lineno - 1]
     print("line %d, column %d:unexpected token %s" % (t.lexer.lineno, t.lexer.lexpos - i, t.value))
@@ -315,7 +318,7 @@ def p_error(t):
 
 def p_Block(p):
     """Block : '{' StatementList '}'
-    | '{'  '}'"""
+    | '{'  '}' """
     p[0] = "Block"
     p[0] = list(p)
     # print("Block")
@@ -543,7 +546,8 @@ def p_Statement(p):
 
 def p_StatementList(p):
     """StatementList : Statement
-    | StatementList Statement"""
+    | StatementList Statement
+     | StatementList error"""
     if len(p) == 3:
         p[1].append(p[2])
         p[0] = p[1]
@@ -555,7 +559,11 @@ def p_StatementList(p):
 
 def p_VariableStatement(p):
     """VariableStatement : VAR Identifier ';'
-    | VAR Identifier EQUAL AssignmentExpressionNoIn ';'"""
+    |   VAR error ';'
+    |   VAR error
+    |   VAR Identifier EQUAL AssignmentExpressionNoIn ';'
+    |   VAR Identifier EQUAL error ';'
+    |   VAR Identifier EQUAL error"""
     p[0] = "VariableStatement"
     p[0] = list(p)
     # print("VariableStatement")
@@ -569,7 +577,9 @@ def p_EmptyStatement(p):
 
 
 def p_ExpressionNoInStatement(p):
-    """ExpressionNoInStatement : ExpressionNoIn ';' """
+    """ExpressionNoInStatement : ExpressionNoIn ';'
+    |   error ';'
+    |   error """
     p[0] = "ExpressionNoInStatement"
     p[0] = list(p)
     # print("ExpressionNoInStatement")
@@ -577,7 +587,9 @@ def p_ExpressionNoInStatement(p):
 
 def p_IfStatement(p):
     """IfStatement : IF '(' ExpressionNoIn ')' Statement ELSE Statement
-    | IF '(' ExpressionNoIn ')' Statement """
+    |   IF '(' error ')' Statement ELSE Statement
+    |   IF '(' ExpressionNoIn ')' Statement
+    |   IF '(' error ')' Statement """
     p[0] = "IfStatement"
     p[0] = list(p)
     # print("IfStatement")
@@ -594,29 +606,28 @@ def p_IterationStatement(p):
 
 
 def p_DoStatement(p):
-    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';' """
+    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';'
+    |   DO Statement WHILE '(' error ')' ';' """
     p[0] = "DoStatement"
     p[0] = list(p)
     # print("DoStatement")
 
 
 def p_WhileStatement(p):
-    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement"""
+    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement
+    |   WHILE '(' error ')' Statement """
     p[0] = "WhileStatement"
     p[0] = list(p)
     # print("WhileStatement")
 
 
 def p_OriginForStatement(p):
-    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement"""
+    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement
+    |   FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' error ')' Statement
+    |   FOR '(' ExpressionNoIn  ';' error ')' Statement
+    |   FOR '(' error ')' Statement """
     p[0] = "OriginForStatement"
     p[0] = list(p)
-    # print("OriginForStatement")
-
-
-# def p_OriginForStatementError(p):
-#     """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn error ')' Statement"""
-#     print("For statement error")
 
 
 def p_ForEachStatement(p):
@@ -627,7 +638,8 @@ def p_ForEachStatement(p):
 
 def p_ReturnStatement(p):
     """ReturnStatement : RETURN ExpressionNoIn ';'
-    | RETURN ';' """
+    | RETURN ';'
+    | RETURN error ';' """
     p[0] = "ReturnStatement"
     p[0] = list(p)
     # print("ReturnStatement")
@@ -689,6 +701,10 @@ def build(start_label):
     yacc.yacc(debug=1, start=start_label, optimize=True, tabmodule="lift_tab")
     lexer = lex.lex()
     lexer.lines = [0]
+
+
+def parse(source):
+    ast = yacc.parse(source) if correct else None
 
 
 if __name__ == "__main__":
