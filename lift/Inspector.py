@@ -57,7 +57,7 @@ def inspect_function_expression(ast):
     scope_list.append([])
     try:
         if ast[2] != '(':
-            inspect_identifier(ast[2])
+            scope_list[-1].append(inspect_identifier(ast[2]))
         if ast[-3] != '(':
             # The function has arguments
             for node in ast[-3]:
