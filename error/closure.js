@@ -1,6 +1,11 @@
 function fib(n) {
+  function f(x){
+    var p;
+    n = p+1;
+  };
   if (n < 2) {
-    retun n;
+    n=p+1;
+    return n;
   } else {
     return fib(x-1) + fib(n-2);
   }
@@ -11,3 +16,7 @@ for (i = 0; i < 9; ++i) {
     panel.show(fib(i));
 };
 
+function f(){
+}
+y+x
+x=1;

@@ -197,7 +197,7 @@ def t_IDENTIFIER_NAME(t):
     t.type = reserved.get(t.value, 'IDENTIFIER_NAME')  # Check for reserved words
     i = t.lexer.lines[t.lexer.lineno - 1]
     t.value = LiftStr(t.value, (t.lexer.lineno, t.lexer.lexpos - i))
-    t.value.pos=t.lexer.lexpos
+    t.value.pos = t.lexer.lexpos
     return t
 
 
@@ -320,6 +320,8 @@ literals = "(){}[];.,?:"
 
 def p_error(t):
     Parser.correct = False
+    # if t is None:
+    #     return
     i = t.lexer.lines[t.lexer.lineno - 1]
     err_msg = "line %d, column %d: unexpected token %s\n" % (t.lexer.lineno, t.lexer.lexpos - i, t.value)
     err_msg += print_error(t.lexer, t.lexer.lineno, t.lexer.lexpos)
@@ -492,8 +494,7 @@ def p_ArgumentList(p):
 
 
 def p_LeftHandSideExpression(p):
-    """LeftHandSideExpression  ::= Identifier
-    |   CallExpression
+    """LeftHandSideExpression  ::= CallExpression
     |   MemberExpression """
     p[0] = "LeftHandSideExpression"
     p[0] = list(p)
@@ -541,8 +542,6 @@ def p_AssignmentExpressionNoIn(p):
     | MINUS AssignmentExpressionNoIn %prec UNARY
     | BIT_WISE_NOT AssignmentExpressionNoIn %prec UNARY
     | NOT AssignmentExpressionNoIn
-    | CallExpression %prec RIGHT_HAND
-    | MemberExpression %prec RIGHT_HAND
     | AssignmentExpressionNoIn PLUS_PLUS %prec RIGHT_HAND
     | AssignmentExpressionNoIn MINUS_MINUS %prec RIGHT_HAND
     | LeftHandSideExpression %prec LEFT_HAND"""
@@ -568,7 +567,7 @@ def p_Statement(p):
     |   PrintStatement"""
     p[0] = "Statement"
     p[0] = list(p)
-    # print("Statement")
+    # printAST(list(p))
 
 
 def p_StatementList(p):
@@ -616,8 +615,7 @@ def p_ExpressionNoInStatement(p):
 
 
 def p_ExpressionNoInStatementError(p):
-    """ExpressionNoInStatement : error ';'
-    |   error """
+    """ExpressionNoInStatement : error ';' """
     p[0] = "ExpressionNoInStatement"
     p[0] = list(p)
 
