@@ -27,7 +27,7 @@ def test_demo(capsys, source, result):
         reload(Machine)
         reload(Processor)
         Parser.build('Program')
-        ast = Parser.yacc.parse(f.read())
+        ast = Parser.parse(f.read())
         code = Generator.generate(ast)
         Machine.load(code.splitlines(True))
         Machine.run()

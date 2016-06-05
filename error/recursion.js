@@ -1,8 +1,8 @@
 function fib(n) {
   if (n < 2) {
-    return n;
+    retun n;
   } else {
-    return fib(n-1) + fib(n-2);
+    return fib(x-1) + fib(n-2);
   }
 };
 

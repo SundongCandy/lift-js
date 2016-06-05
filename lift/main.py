@@ -30,6 +30,11 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if ast is None:
+        error_list = list(Parser.error_list.keys())
+        error_list.sort()
+        for key in error_list:
+            sys.stdout.write(Parser.error_list[key])
+        sys.stdout.flush()
         sys.exit(-1)
 
     if args['-O']:

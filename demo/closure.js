@@ -1,5 +1,5 @@
 function Number() {
-  var num = 0;
+  num = 0;
   this.set = function (n) {
     num = n;
   };
