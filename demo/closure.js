@@ -1,12 +1,12 @@
 function Number() {
-  var num = 0;
+  num = 0;
   this.set = function (n) {
     num = n;
   };
   this.get = function () {
     return num;
   };
-}
+};
 
 n = new Number();
 panel.show(n.get());

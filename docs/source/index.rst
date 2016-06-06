@@ -14,6 +14,7 @@ Contents:
    intro.rst
    grammar.rst
    implementation.rst
+   inspector.rst
    document.rst
 
 

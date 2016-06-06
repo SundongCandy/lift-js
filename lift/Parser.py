@@ -1,7 +1,13 @@
 from __future__ import print_function
 import ply.lex as lex
 import ply.yacc as yacc
+import Inspector
+import Parser
 
+import sys
+
+correct = True
+error_list = {}
 # import pdb
 unsupported = (
     'abstract',
@@ -175,11 +181,23 @@ def t_BOOLEAN_LITERAL(t):
     return t
 
 
+class LiftStr(str):
+    def __new__(cls, value, *args, **keywargs):
+        return str.__new__(cls, value)
+
+    def __init__(self, value, position):
+        super(LiftStr, self).__init__(value)
+        self.position = position
+
+
 def t_IDENTIFIER_NAME(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     if t.value in unsupported:
         raise Exception('"' + t.value + '" is Forbidden used as Identifier.')
     t.type = reserved.get(t.value, 'IDENTIFIER_NAME')  # Check for reserved words
+    i = t.lexer.lines[t.lexer.lineno - 1]
+    t.value = LiftStr(t.value, (t.lexer.lineno, t.lexer.lexpos - i))
+    t.value.pos = t.lexer.lexpos
     return t
 
 
@@ -251,7 +269,10 @@ def t_STRING_LITERAL(t):
 
 def t_COMMENT(t):
     r'(//.*)|(/\*(.|\n)*\*/)'
-    t.lexer.lineno += t.value.count("\n")
+    length = t.value.count("\n")
+    t.lexer.lineno += length
+    for i in range(0, length):
+        t.lexer.lines.append(t.lexer.lexpos)
     pass
     # No return value. Token discarded
 
@@ -277,12 +298,20 @@ def t_HEX_INTEGER_LITERAL(t):
 # Define a rule so we can track line numbers
 def t_newline(t):
     r'\n+'
-    t.lexer.lineno += len(t.value)
+    length = len(t.value)
+    t.lexer.lineno += length
+    for i in range(0, length):
+        t.lexer.lines.append(t.lexer.lexpos)
 
 
 # Error handling rule
 def t_error(t):
-    raise Exception("Illegal character '%s' at line %d" % (t.value[0], t.lexer.lineno))
+    Parser.correct = False
+    i = t.lexer.lines[t.lexer.lineno - 1]
+    err_msg = "line %d, column %d: Illegal character '%s'\n" % (t.lexer.lineno, t.lexer.lexpos - i, t.value[0])
+    t.lexer.skip(1)
+    err_msg += print_error(t.lexer, t.lexer.lineno, t.lexer.lexpos)
+    error_list[t.lexer.lexpos] = err_msg
 
 
 t_ignore = ' \t\f\v'
@@ -290,12 +319,35 @@ literals = "(){}[];.,?:"
 
 
 def p_error(t):
-    raise Exception("Can't undersand token '" + str(t.value) + "'")
+    Parser.correct = False
+    # if t is None:
+    #     return
+    i = t.lexer.lines[t.lexer.lineno - 1]
+    err_msg = "line %d, column %d: unexpected token %s\n" % (t.lexer.lineno, t.lexer.lexpos - i, t.value)
+    err_msg += print_error(t.lexer, t.lexer.lineno, t.lexer.lexpos)
+    error_list[t.lexer.lexpos] = err_msg
+
+
+def print_error(l, line_num, pos):
+    data_len = len(l.lexdata)
+    data = l.lexdata
+    i = l.lines[line_num - 1]
+    ret = ""
+    while i < data_len and data[i] != "\n":
+        ret += data[i]
+        i += 1
+    ret += "\n"
+    i = l.lines[line_num - 1]
+    while i < data_len and data[i] != "\n":
+        i += 1
+        ret += "^" if i == pos else " "
+    ret += "\n"
+    return ret
 
 
 def p_Block(p):
     """Block : '{' StatementList '}'
-    | '{'  '}'"""
+    | '{'  '}' """
     p[0] = "Block"
     p[0] = list(p)
     # print("Block")
@@ -442,8 +494,7 @@ def p_ArgumentList(p):
 
 
 def p_LeftHandSideExpression(p):
-    """LeftHandSideExpression  ::= Identifier
-    |   CallExpression
+    """LeftHandSideExpression  ::= CallExpression
     |   MemberExpression """
     p[0] = "LeftHandSideExpression"
     p[0] = list(p)
@@ -491,8 +542,6 @@ def p_AssignmentExpressionNoIn(p):
     | MINUS AssignmentExpressionNoIn %prec UNARY
     | BIT_WISE_NOT AssignmentExpressionNoIn %prec UNARY
     | NOT AssignmentExpressionNoIn
-    | CallExpression %prec RIGHT_HAND
-    | MemberExpression %prec RIGHT_HAND
     | AssignmentExpressionNoIn PLUS_PLUS %prec RIGHT_HAND
     | AssignmentExpressionNoIn MINUS_MINUS %prec RIGHT_HAND
     | LeftHandSideExpression %prec LEFT_HAND"""
@@ -518,12 +567,13 @@ def p_Statement(p):
     |   PrintStatement"""
     p[0] = "Statement"
     p[0] = list(p)
-    # print("Statement")
+    # printAST(list(p))
 
 
 def p_StatementList(p):
     """StatementList : Statement
-    | StatementList Statement"""
+    |   StatementList Statement
+    |   StatementList error"""
     if len(p) == 3:
         p[1].append(p[2])
         p[0] = p[1]
@@ -535,12 +585,19 @@ def p_StatementList(p):
 
 def p_VariableStatement(p):
     """VariableStatement : VAR Identifier ';'
-    | VAR Identifier
-    | VAR Identifier EQUAL AssignmentExpressionNoIn
-    | VAR Identifier EQUAL AssignmentExpressionNoIn ';'"""
+    |   VAR Identifier EQUAL AssignmentExpressionNoIn ';' """
     p[0] = "VariableStatement"
     p[0] = list(p)
     # print("VariableStatement")
+
+
+def p_VariableStatementError(p):
+    """VariableStatement : VAR error ';'
+    |   VAR error
+    |   VAR Identifier EQUAL error ';'
+    |   VAR Identifier EQUAL error"""
+    p[0] = "VariableStatement"
+    p[0] = list(p)
 
 
 def p_EmptyStatement(p):
@@ -551,19 +608,30 @@ def p_EmptyStatement(p):
 
 
 def p_ExpressionNoInStatement(p):
-    """ExpressionNoInStatement : ExpressionNoIn ';'
-    |  ExpressionNoIn """
+    """ExpressionNoInStatement : ExpressionNoIn ';' """
     p[0] = "ExpressionNoInStatement"
     p[0] = list(p)
     # print("ExpressionNoInStatement")
 
 
+def p_ExpressionNoInStatementError(p):
+    """ExpressionNoInStatement : error ';' """
+    p[0] = "ExpressionNoInStatement"
+    p[0] = list(p)
+
+
 def p_IfStatement(p):
     """IfStatement : IF '(' ExpressionNoIn ')' Statement ELSE Statement
-    | IF '(' ExpressionNoIn ')' Statement """
+    |   IF '(' ExpressionNoIn ')' Statement """
     p[0] = "IfStatement"
     p[0] = list(p)
-    # print("IfStatement")
+
+
+def p_IfStatementError(p):
+    """IfStatement : IF '(' error ')' Statement ELSE Statement
+    |   IF '(' error ')' Statement """
+    p[0] = "IfStatement"
+    p[0] = list(p)
 
 
 def p_IterationStatement(p):
@@ -577,25 +645,43 @@ def p_IterationStatement(p):
 
 
 def p_DoStatement(p):
-    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';'
-    | DO Statement WHILE '(' ExpressionNoIn ')' """
+    """DoStatement : DO Statement WHILE '(' ExpressionNoIn ')' ';' """
     p[0] = "DoStatement"
     p[0] = list(p)
     # print("DoStatement")
 
 
+def p_DoStatementError(p):
+    """DoStatement : DO Statement WHILE '(' error ')' ';' """
+    p[0] = "DoStatement"
+    p[0] = list(p)
+
+
 def p_WhileStatement(p):
-    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement"""
+    """WhileStatement : WHILE '(' ExpressionNoIn ')' Statement """
     p[0] = "WhileStatement"
     p[0] = list(p)
     # print("WhileStatement")
 
 
+def p_WhileStatementError(p):
+    """WhileStatement : WHILE '(' error ')' Statement """
+    p[0] = "WhileStatement"
+    p[0] = list(p)
+
+
 def p_OriginForStatement(p):
-    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement"""
+    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' ExpressionNoIn  ')' Statement """
     p[0] = "OriginForStatement"
     p[0] = list(p)
-    # print("OriginForStatement")
+
+
+def p_OriginForStatementError(p):
+    """OriginForStatement : FOR '(' ExpressionNoIn  ';' ExpressionNoIn ';' error ')' Statement
+    |   FOR '(' ExpressionNoIn  ';' error ')' Statement
+    |   FOR '(' error ')' Statement """
+    p[0] = "OriginForStatement"
+    p[0] = list(p)
 
 
 def p_ForEachStatement(p):
@@ -606,17 +692,20 @@ def p_ForEachStatement(p):
 
 def p_ReturnStatement(p):
     """ReturnStatement : RETURN ExpressionNoIn ';'
-    | RETURN ExpressionNoIn
-    | RETURN ';'
-    | RETURN"""
+    | RETURN ';' """
     p[0] = "ReturnStatement"
     p[0] = list(p)
     # print("ReturnStatement")
 
 
+def p_ReturnStatementError(p):
+    """ReturnStatement : RETURN error ';' """
+    p[0] = "ReturnStatement"
+    p[0] = list(p)
+
+
 def p_PrintStatement(p):
-    """PrintStatement : PRINT ExpressionNoIn ';'
-    | PRINT ExpressionNoIn """
+    """PrintStatement : PRINT ExpressionNoIn ';' """
     p[0] = "PrintStatement"
     p[0] = list(p)
 
@@ -640,7 +729,6 @@ def p_FormalParameterList(p):
         p[0] = p[1]
     else:
         p[0] = ['FormalParameterList', p[1]]
-        # print("FormalParameterList")
 
 
 def p_FunctionBody(p):
@@ -648,7 +736,6 @@ def p_FunctionBody(p):
                     | '{' StatementList '}'"""
     p[0] = 'FunctionBody'
     p[0] = list(p)
-    # print("FunctionBody")
 
 
 def p_Program(p):
@@ -667,8 +754,23 @@ def printAST(p, n=0):
             print(p)
 
 
-lex.lex()
+lexer = lex.lex()
+lexer.lines = [0]
 
 
 def build(start_label):
     yacc.yacc(debug=1, start=start_label, optimize=True, tabmodule="lift_tab")
+
+
+def parse(source):
+    ret = yacc.parse(source)
+    reload(Inspector)
+    Parser.correct = Inspector.inspect(ret) and Parser.correct
+    # printAST(ret)
+    return ret if Parser.correct else None
+
+
+if __name__ == "__main__":
+    build("Program")
+    with open("error/basic.js") as file:
+        ast = yacc.parse(file.read())
